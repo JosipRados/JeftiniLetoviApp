@@ -1,0 +1,119 @@
+﻿@page "/flightoffers"
+
+<PageTitle>Flight Offers</PageTitle>
+
+@using JeftiniLetoviUI.Services
+@using JeftiniLetoviUI.Models
+@using JeftiniLetoviData.DTO
+@inject IFlightOffersService flightService
+
+<h1>Flight Offers</h1>
+
+<p>Enter data to find affordable flights.</p>
+
+
+<EditForm Model="Request" OnValidSubmit="Submit" FormName="FlightData">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-3">
+                    <label>Departing Airport Code (XYZ):</label>
+                    <InputText class="form-control" @bind-Value="Request!.DepartingCode" />
+            </div>
+            <div class="col-md-3">
+                    <label>Arrival Airport Code (XYZ):</label>
+                    <InputText class="form-control" @bind-Value="Request!.ArrivalCode" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                    <label>Departure Date:</label>
+                    <InputDate class="form-control" @bind-Value="Request!.DepartureDate" />
+
+            </div>
+            <div class="col-md-3">
+                    <label>Returning Date:</label>
+                    <InputDate class="form-control" @bind-Value="Request!.ReturningDate" />
+
+            </div>
+        </div>
+        <div class="col-md-3">
+                <label>Number of Passengers:</label>
+                <InputNumber class="form-control" @bind-Value="Request!.NumberOfPassengers" />
+
+        </div>
+        <div class="col-md-3">
+                <label>Currency Code (EUR):</label>
+                <InputText class="form-control" @bind-Value="Request!.Currency" />
+
+        </div>
+    </div>
+    <div class="mt-2 row-cols-6">
+        <button type="submit" class="col-md-2 btn btn-primary">Submit</button>
+    </div>
+
+</EditForm>
+
+<p class="mt-2 mb-2">@message</p>
+
+    @if (Flights != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th>Departure Dt.</th>
+                    <th>Rerturn Dt.</th>
+                    <th>Dep. Connections</th>
+                    <th>Ret. Connections</th>
+                    <th>Available Seats</th>
+                    <th>Price</th>
+                    <th>Currency</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var flight in Flights)
+                {
+                    <tr>
+                        <td>@flight.DepartureAirport</td>
+                        <td>@flight.ArrivalAirport</td>
+                        <td>@flight.DepartureDate</td>
+                        <td>@flight.ReturnDate</td>
+                        <td>@flight.DepartureConnections</td>
+                        <td>@flight.ReturnConnections</td>
+                        <td>@flight.NumberOfSeats</td>
+                        <td>@flight.Price</td>
+                        <td>@flight.Currency</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+
+@code {
+    private string message = "";
+    private GetFlightOffersResponseDTO? FlightsTemp;
+    private List<FlightOffersModel> Flights = new List<FlightOffersModel>();
+    private FlightOffersRequestModel Request = new FlightOffersRequestModel() 
+                                               { DepartureDate = DateOnly.FromDateTime(DateTime.Now), 
+                                                 ReturningDate = DateOnly.FromDateTime(DateTime.Now) };
+
+
+    internal async void Submit()
+    {
+        Flights.Clear();
+        message = "";
+
+        Flights = await flightService.FetchFlightOffers(Request);
+
+        if (Flights.Count <= 0 || Flights == null)
+            message = "Data can't be retrived.";
+        else
+            message = "";
+
+        StateHasChanged();
+    }
+}
